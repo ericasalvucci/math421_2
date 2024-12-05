@@ -1,0 +1,250 @@
+
+---
+output: # rmarkdown::github_document
+  html_document:
+  pdf_document: default
+  word_document: default
+title: "Assignment 3.  Working with Data Frame. Base R Style"
+---
+
+***Note*:** *This assignment practices working with Data Frame using Base R.*
+
+***How to do it?***: 
+
+- Open the Rmarkdown file of this assignment ([link](assignment3.Rmd)) in Rstudio. 
+
+- Right under each question, insert  a code chunk (you can use the hotkey `Ctrl + Alt + I` to add a code chunk) and code the solution for the question. 
+
+- `Knit` the rmarkdown file (hotkey: `Ctrl + Alt + K`) to export an html.  
+
+-  Publish the html file to your Githiub Page. 
+
+***Submission***: Submit the link on Github of the assignment to Canvas under Assignment 3. 
+
+-------
+
+Problems
+-------
+ \
+
+1. Create the following data frame
+
+| Rank 	| Age 	| Name  	|
+|:------	|:-----	|:-------	|
+| 0    	| 28  	| Tom   	|
+| 1    	| 34  	| Jack  	|
+| 2    	| 29  	| Steve 	|
+| 3    	| 42  	| Ricky 	|
+
+```{r}
+df = data.frame(Rank = c('0','1','2','3'),
+                Age = c(28,34,29,42),
+                Name = c('Tom','Jack','Steve','Ricky'))
+```
+
+
+2. Use `read.csv` to import the Covid19 Vaccination data from WHO: [link](https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv).
+
+2. Show the names of the variables in the data
+
+```{r}
+df = read.csv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv')
+names(df)
+```
+3. How many columns and rows the data have?
+
+```{r}
+head(df)
+```
+
+
+
+4. How many missing values are there?  Show the missing values by columns.  What variable has the most number of missing values?
+```{r}
+sum(is.na(df))
+```
+```{r}
+colSums(is.na(df))
+```
+```{r}
+colMeans(is.na(df))
+```
+
+
+
+
+5. What is the class of the `date` column. Change the `date` columns to `date` type using the `as.Date` function. Show the new class of the `date` column. 
+```{r}
+class(df$date)
+```
+```{r}
+df$date = as.Date(df$date)
+```
+
+
+
+6. Capitalize the names of all the variables
+```{r}
+names(df)[1] <- 'Date'
+names(df)[2] <- 'State'
+names(df)[3] <- 'Fips'
+names(df)[4] <- 'Cases'
+names(df)[5] <- 'Deaths'
+```
+
+
+7. Find the average number of cases per day. Find the maximum cases a day.  
+```{r}
+mean(df$Cases, na.rm=TRUE)
+```
+```{r}
+max(df$Cases, na.rm=TRUE)
+```
+
+
+8. How many states are there in the data?
+```{r}
+length(table(df$State))
+```
+
+
+9. Create a new variable `weekdays` to store the weekday for each rows. 
+
+```{r}
+df$weekdays <- weekdays(df$Date)
+```
+
+
+10. Create the categorical variable `death2` variable taking the values as follows
+
+- `has_death` if there is a death that day
+-  `no_death` if there is no death that day
+
+Find the frequency and relative frequency of `no_death` and `has_death`. 
+
+```{r}
+df$death2 <- ifelse(df$Deaths==0,
+                    'no_death','has_death')
+table(df$death2)
+```
+
+
+11. Find the first quartile (Q1), second quartile (Q2) and and third quartile (Q3) of the variable `death`. (Hint:  Use the `summary` function)
+
+```{r}
+summary(df$Deaths)
+```
+
+
+12. Create the categorical variable `death3` variable taking the values as follows
+
+- `low_death` if the number of deaths smaller than the 25 percentile (Q1)
+
+- `mid_death` if the number of deaths from Q1 to Q3
+
+- `high_death` if the number of deaths greater than Q3
+
+```{r}
+library(dplyr)
+```
+```{r}
+df$deaths3 <- case_when(df$Deaths<1171 ~ 'low_death',
+                             df$Deaths<14912 ~ 'mid_death',
+                             TRUE~'high_death')
+table(df$deaths3)
+```
+
+
+13. Find the average cases in Rhode Island in 2021
+
+```{r}
+df <- df[df$Date_report>='2021-01-01',]
+by(df1$New_cases, df1$WHO_region, mean)
+```
+
+
+14. Find the median cases by weekdays in Rhode Island in 2021 
+
+```{r}
+df$weekdays <- weekdays(df$Date)
+df1 = df[df$state== 'Rhode Island',]
+by(df1$deaths,df1$weekdays, median)
+```
+
+
+15. Compare the median cases in Rhode Island in June, July, August and September in 2021. 
+
+```{r}
+df$month = months(df$Date)
+```
+
+```{r}
+df1 = df[df$month %in% c('June' , 'July' , 'August', 'September') & (df$date >= '01-01-2021') & (df$date <= '12-31-2021') ,]
+by(df1$Cases, df1$month, median)
+```
+
+
+16.  Find your own dataset, import it and implement the following functions on the data
+
+```{r}
+df2 = read.csv("combined.csv")
+```
+
+
+- head
+```{r}
+head(df2)
+```
+
+- str
+```{r}
+str(df2)
+```
+
+- names
+```{r}
+names(df2)
+```
+
+- mean, min, max
+```{r}
+mean(df2$FlightNum, na.rm=TRUE)
+```
+```{r}
+min(df2$FlightNum, na.rm=TRUE)
+```
+```{r}
+max(df2$FlightNum, na.rm=TRUE)
+```
+
+- table
+```{r}
+table(df2$Month)
+```
+
+- is.na
+```{r}
+sum(is.na(df))
+```
+
+- colSums
+```{r}
+colSums(is.na(df2))
+```
+
+- class
+```{r}
+class(df2$FlightNum)
+```
+
+- cor
+```{r}
+cor(df2$Month, df2$FlightNum)
+```
+
+- by
+```{r}
+by(df2$FlightNum, df2$FlightNum, FUN = mean)
+```
+
+

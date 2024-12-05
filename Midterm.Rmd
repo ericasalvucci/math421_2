@@ -1,0 +1,565 @@
+---
+title: "Midterm"
+output: ioslides_presentation
+date: "2024-11-12"
+---
+
+
+```{r}
+library(gganimate)
+library(ggplot2)
+library(tidyverse)
+```
+
+I. Data Wranggling
+Download the data file hdd0318cy.sas7bdat.
+
+Use read_sas in library haven to read the data.
+```{r}
+library(haven)
+df <-read_sas('hdd0318cy.sas7bdat')
+raw_data=df
+n=nrow(df)
+print(raw_data)
+```
+
+```{r}
+# find the number of rows of the data
+n = nrow(df)
+
+# subset 1000 rows of the data
+df1 = df[sample(1:n, 1000), ]
+```
+
+
+Filter the data to have only patients of the year 2018 (yod=18)
+```{r}
+df1 = raw_data %>% 
+  filter(yod==18)
+```
+
+
+Select to work with only following variables:
+
+                      "yod", "payfix","pay_ub92","age",  
+                      "sex","raceethn","provider","moa", 
+                      "yoa","mod","admtype", "asource" , 
+                      "preopday" ,"los", "service" , "icu","ccu",    
+                      "dispub92", "payer"  ,"drg","trandb", 
+                      "randbg","randbs","orr", "anes","seq",   
+                      "lab","dtest", "ther","blood","phar", 
+                      "other","patcon","bwght","total","tot" ,  
+                      "ecodub92","b_wt","pt_state","diag_adm","ancilar" ,
+                      "campus","er_fee","er_chrg","er_mode","obs_chrg",
+                      "obs_hour","psycchrg","nicu_day"
+Notice: You may want to save the current data to your computer for easy access later. To save the data file use write_csv(df, 'midterm.csv'), for example. Also notice that, empty values in the data before writing to csv may turn to NAs later when you re-read the file.
+```{r}
+write_csv(df1, 'midterm.csv')
+```
+
+
+```{r}
+df1 <- df1 %>%
+  mutate(sex = case_when(
+    sex == 1 ~ "Male",
+    sex == 2 ~ "Female"
+  ))
+df1 <- df1 %>% 
+  mutate(provider = as.numeric(provider),
+         provider = case_when(
+    provider == 7201 ~ 'Newport',
+    provider == 7202 ~ 'St. Joseph Health Services of RI',
+    provider == 7203 ~ 'Memorial',
+    provider == 7204 ~ 'Miriam',
+    provider == 7205 ~ 'Rhode Island Hospital',
+    provider == 7206 ~ 'Roger Williams',
+    provider == 7209 ~ 'South County',
+    provider == 7210 ~ 'Kent County',
+    provider == 7211 ~ 'Westerly',
+    provider == 7212 ~ 'Rehab of RI',
+    provider == 7213 ~ 'Landmark Medical Center',
+    provider == 7214 ~ 'Women and Infants',
+    provider == 7215 ~ 'Bradley',
+    provider == 7216 ~ 'Butler',
+  ))
+df1$total <- as.numeric(df1$total)
+df1$icu <- as.numeric(df1$icu)
+df1 <- df1 %>% 
+  mutate(race = as.numeric(race),
+         race = case_when(
+           race == 1 ~ 'White',
+           race == 2 ~ 'Black',
+           race == 3 ~ 'Asian',
+           race == 4 ~ 'American Indian',
+           race == 5 ~ 'Hispanic',
+           race == 6 ~ 'Other',
+           race == 9 ~ 'Unknown',
+           
+         ))
+df1 <- df1 %>% 
+  mutate(admtype = as.numeric(admtype),
+         admtype = case_when(
+           admtype == 1 ~ 'Emergency',
+           admtype == 2 ~ 'Urgent',
+           admtype == 3 ~ 'Electric',
+           admtype == 4 ~ 'Newborn',
+           admtype == 5 ~ 'Court Committal',
+           admtype == 9 ~ 'Information Not Availble',
+         
+           ))
+```
+
+
+What are variables that have missing values?
+
+```{r}
+na_count <- colSums(is.na(df1))
+print(na_count)
+```
+
+
+
+Remove all variables with missing values.
+```{r}
+df2 = drop_na(df1)
+```
+
+
+Refer to the data description in the file HDD2015-18cy6-20-19.docx, which variable recording the month of admission?, which variable recording the month of discharge?
+```{r}
+#Month of Admission = moa
+#Month of Discharge = mod
+```
+
+
+Which month admitted the most number of patients? Which month admitted the most number of male patients?
+```{r}
+df1 %>%
+  group_by(moa) %>%
+  count() %>%
+  arrange(desc(n))
+```
+
+```{r}
+df1 %>%
+  filter(sex == 'Male') %>%
+  group_by(moa) %>%
+  count(moa) %>%
+  arrange(-n)
+```
+
+
+Which month has the most number of teenage female patients?
+```{r}
+df1 %>%
+  filter(sex == "Female", age >= 13, age <=19 ) %>%
+  group_by(moa) %>%
+  count(moa) %>%
+  arrange(-n)
+```
+
+
+Which provider has the most number of female patients in October?
+```{r}
+df1 %>%
+  group_by(provider) %>%
+  filter(sex == 'Female', moa == '10')%>%
+  count(provider) %>% 
+  arrange(-n)
+```
+
+
+Are female patients older than male patients, on average?
+
+```{r}
+df1 %>% 
+  filter(sex == 'Female') %>% 
+  summarise(female_age = mean(age))
+```
+```{r}
+df1 %>% 
+  filter(sex == 'Male') %>% 
+  summarise(male_age = mean(age))
+```
+
+#No, female patients are not older than male patients on average.
+Calculate the average age of patients by months. Which month has the oldest patients on average age?
+```{r}
+df1 %>% 
+  group_by(moa) %>%
+  summarise(average_age = mean(age)) %>% 
+  arrange(-average_age)
+```
+
+
+What is the name of the provider that has the highest total charge?
+```{r}
+df1 %>% 
+  group_by(provider) %>% 
+  summarise(total_charge = max(total)) %>% 
+  arrange(desc(total_charge)) %>% 
+  head(1)
+```
+
+
+What is the name of the provider that has the least total charge for teenage male on average?
+```{r}
+df1 %>% 
+  group_by(provider) %>%
+  filter(sex == 'Male', age >= 13, age <=19 ) %>% 
+  summarise(least_total = min(total)) %>% 
+  count(provider) %>% 
+  arrange(-n)
+```
+
+
+Create a season (Spring, Summer, Fall, Winter) variable. Calculate the length of stays by season. Which season has the longest length of stays on average?
+```{r}
+df1 <- df1 %>%
+  mutate(season = case_when(
+    month(moa) %in% c(12, 1, 2) ~ "Winter",
+    month(moa) %in% c(3, 4, 5) ~ "Spring",
+    month(moa) %in% c(6, 7, 8) ~ "Summer",
+    month(moa) %in% c(9, 10, 11) ~ "Fall"
+  ))
+```
+
+```{r}
+season_average <- df1 %>%
+  group_by(season) %>%
+  summarise(length_of_stay = mean(los)) %>% 
+  arrange(desc(length_of_stay))
+```
+
+```{r}
+season_average %>%
+  filter(length_of_stay == max(length_of_stay))
+```
+
+On average, how much a 20 year-old male get charged for staying 1 day in the Fall season?
+
+```{r}
+df1 %>% 
+  group_by(sex == 'Male') %>% 
+  filter(age == 21, season == 'Fall', los == 1) %>% 
+  summarise(total = mean(total))
+```
+
+Write a paragraph to summarize the section and give your comments on the results. You could do some other calculations to support your points.
+
+#This data provides valuable insights into hospital attendance, including the average number of people who visit, broken down by gender, age, and race. It gives a clear picture of the demographic patterns of hospital-goers.
+
+#II. Data Visualization
+
+Continue with the data from part I.
+
+Provides at least 10 meaningful plots. Comments on the plots. All plots should have title, caption, appropriate labels on x and y-axis
+#1 
+```{r}
+df1 %>% 
+  ggplot() +
+  geom_point(aes(x = age, y = icu, color = sex)) +
+  labs(title = "Age vs. ICU Days", x = "Age", y = "ICU (Days)")
+```
+#2
+```{r}
+df1 %>% 
+  ggplot() +
+  geom_bar(mapping=aes(x = race, fill = sex),
+  position = 'fill')+
+  labs(title = "Seasonal Admissions: Based on Race", x = "Season", y = "Number of Admissions")
+```
+
+#3
+```{r}
+df1 %>% 
+  ggplot()+
+  geom_smooth(aes(x = los, y = total))+
+   labs(title = "Length of Stay vs. Total Charges", x = "Length of Stay", y = "Total Charges")
+```
+
+#4
+```{r}
+df1 %>% 
+  ggplot() +
+  geom_point(aes(x = age, y = los, color = sex)) +
+  labs(title = "Age vs. Length of Stay", x = "Age", y = "Length of Stay (Days)")
+```
+
+#5
+```{r}
+df1 %>% 
+  ggplot() +
+  geom_bar(mapping=aes(x = sex, fill = season),
+  position = 'dodge')+
+  labs(title = "Seasonal Admissions", x = "Sex", y = "Number of Admissions")
+```
+
+#6
+```{r}
+df1 %>% 
+  ggplot() +
+  geom_point(aes(x = age, y = total, color = sex)) +
+  labs(title = "Age vs. Total Charges", x = "Age", y = "Total Charges")
+```
+
+#7
+```{r}
+ggplot(df1, aes(x = provider)) +
+  geom_bar(fill = "purple", color = "blue") +
+  labs(title = "Provider Frequency", x = "Provider", y = "Frequency")+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+#8
+```{r}
+df1 %>% 
+  ggplot() +
+  geom_bar(mapping=aes(x = admtype, fill = sex),
+  position = 'dodge')+
+  labs(title = "Admission Type per Sex", x = "Admission Type", y = "Number of Admissions")+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+#9
+```{r}
+df1 %>%
+  ggplot(aes(x = age)) +
+  geom_histogram(binwidth = 5) +
+  labs(title = "Age Distribution by Race", x = "Age", y = "Count") +
+  facet_wrap(~race)
+```
+
+#10
+```{r}
+df1 %>% 
+ggplot(aes(x = season, y = los)) +
+  geom_boxplot(fill = "purple") +
+  labs(title = "Length of Stay by Season", x = "Season", y = "Length of Stay (Days)")
+```
+
+```{r}
+library(gganimate)
+g <- ggplot(df1, 
+       aes(x = los, 
+           y = race, 
+           fill = age))+
+  geom_col() + 
+  transition_states(sex)+
+labs(title = 'Sex: {closest_state}')
+animate(g)
+```
+
+## Part III
+
+```{r}
+#library(haven)
+#df1 <-read_sas('hdd0318cy.sas7bdat')
+
+total_charge <- median(df1$tot, na.rm = TRUE)
+
+df1 <- df1 %>%
+  mutate(target = case_when(
+    tot < total_charge ~ "low",
+    TRUE ~ "high"
+  ))
+df1 <- df1 %>% 
+  select("age","sex","raceethn","provider","moa","mod","admtype","campus", 'los', 'target')
+```
+
+```{r}
+df1 <- df1 %>%
+  filter(!raceethn =='', !admtype =='')  
+```
+
+```{r}
+df1 <- df1 %>%
+  mutate(
+    target = as.factor(target),
+    raceethn = as.factor(raceethn),
+    provider = as.factor(provider),
+    moa = as.factor(moa),
+    mod = as.factor(mod),
+    admtype = as.factor(admtype),
+    campus = as.factor(campus),
+    age = as.numeric(age),
+    los = as.numeric(los)
+  )
+```
+
+```{r}
+library(caret)
+
+df1 <- drop_na(df1)
+
+set.seed(2020)
+splitIndex <- createDataPartition(df1$target, p = 0.10, list = FALSE)
+df1_train <- df1[splitIndex, ]
+df1_test <- df1[-splitIndex, ]
+```
+Question 2 
+
+```{r}
+library(rpart) 
+tree_model <- rpart(target ~ ., data = df1_train,
+                 control = rpart.control(maxdepth = 3))
+```
+
+```{r}
+library(rattle)
+fancyRpartPlot(tree_model)
+```
+
+```{r}
+tree_model$variable.importance
+```
+
+```{r}
+barplot(tree_model$variable.importance)
+```
+Question 3
+
+```{r}
+tuneGrid = expand.grid(maxdepth = 2:10)
+trControl = trainControl(method = "cv",
+                         number = 5)
+
+tree_approach2 <- train(target~., data=df1_train, 
+                                method = "rpart2", 
+                                trControl = trControl,
+                                tuneGrid = tuneGrid)
+
+plot(tree_approach2)
+```
+
+```{r}
+library(caret)
+pred <- predict(tree_approach2, df1_test)
+
+cm <- confusionMatrix(data = pred, reference = df1_test$target)
+cm$overall[1]
+```
+
+```{r}
+library(randomForest)
+forest_model = randomForest(target ~ ., data=df1_train, ntree = 5)
+
+pred <- predict(forest_model, df1_test, type = "class")
+
+cm <- confusionMatrix(data = pred, reference = df1_test$target, positive = "high")
+cm$overall[1]
+```
+Question 4
+
+```{r}
+trControl = trainControl(method = "cv",
+                         number = 5)
+tree <- train(target~., data=df1_train, 
+                                method = "rpart2", 
+                                trControl = trControl)
+forest_ranger <- train(target~., data=df1_train, 
+                    method = "ranger", 
+                                trControl = trControl)
+
+results <- resamples(list('Decision Tree' = tree,
+                          'Random Forest' = forest_ranger))
+bwplot(results)
+```
+Question 5
+
+```{r}
+pred <- predict(tree, df1_test)
+cm <- confusionMatrix(data = pred, reference = df1_test$target, positive = "high")
+cm$overall[1]
+```
+Question 6
+
+```{r}
+median(df$age)
+```
+
+
+```{r}
+library(haven)
+library(gganimate)
+library(ggplot2)
+library(tidyverse)
+df2 = df
+```
+
+```{r}
+df_clean <- na.omit(df2)
+```
+
+```{r}
+df_clean <- df[complete.cases(df$age), ]
+```
+
+```{r}
+median(df$age)
+```
+
+
+```{r}
+df2$target <- ifelse(df2$age<56,'low','high')
+df2 <- df2 %>%
+  mutate(target=as.factor(target))
+df2 = df2 %>% select("age","sex","provider","moa","mod","campus","los","target")
+```
+
+
+#1
+```{r}
+library(caret)
+
+splitIndex <- createDataPartition(df2$target, p = 0.10, list = FALSE)
+df1_train <- df2[splitIndex, ]
+df1_test <- df2[-splitIndex, ]
+```
+
+#2
+```{r}
+library(rpart) 
+tree_model <- rpart(target ~ ., data = df1_train,
+                 control = rpart.control(maxdepth = 3))
+```
+
+```{r}
+library(rattle)
+fancyRpartPlot(tree_model)
+```
+
+```{r}
+tree_model$variable.importance
+```
+```{r}
+barplot(tree_model$variable.importance)
+```
+#3
+```{r}
+library(caret)
+
+sum(is.na(df1_train))  
+sum(is.na(df1_train$target))  
+
+df1_train_clean <- na.omit(df1_train)
+
+df1_train_clean$target <- as.factor(df1_train_clean$target)
+
+tuneGrid = expand.grid(maxdepth = 2:10)
+trControl = trainControl(method = "cv", number = 5)
+
+tree_approach2 <- train(target ~ ., data = df1_train_clean,
+                        method = "rpart2", 
+                        trControl = trControl,
+                        tuneGrid = tuneGrid)
+
+plot(tree_approach2)
+
+```
+
+
+
+
+
+

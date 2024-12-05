@@ -1,0 +1,117 @@
+---
+title: "MidtermP2"
+output: html_document
+date: "2024-11-21"
+---
+
+
+#II. Data Visualization
+
+Continue with the data from part I.
+
+Provides at least 10 meaningful plots. Comments on the plots. All plots should have title, caption, appropriate labels on x and y-axis
+
+```{r}
+library(gganimate)
+library(ggplot2)
+library(tidyverse)
+```
+
+#1 
+```{r}
+df1 %>% 
+  ggplot() +
+  geom_point(aes(x = age, y = icu, color = sex)) +
+  labs(title = "Age vs. ICU Days", x = "Age", y = "ICU (Days)")
+```
+#2
+```{r}
+df1 %>% 
+  ggplot() +
+  geom_bar(mapping=aes(x = race, fill = sex),
+  position = 'fill')+
+  labs(title = "Seasonal Admissions: Based on Race", x = "Season", y = "Number of Admissions")
+```
+#3
+```{r}
+df1 %>% 
+  ggplot()+
+  geom_smooth(aes(x = los, y = total))+
+   labs(title = "Length of Stay vs. Total Charges", x = "Length of Stay", y = "Total Charges")
+```
+#4
+```{r}
+df1 %>% 
+  ggplot() +
+  geom_point(aes(x = age, y = los, color = sex)) +
+  labs(title = "Age vs. Length of Stay", x = "Age", y = "Length of Stay (Days)")
+```
+```{r}
+
+```
+
+#5
+```{r}
+df1 %>% 
+  ggplot() +
+  geom_bar(mapping=aes(x = sex, fill = season),
+  position = 'dodge')+
+  labs(title = "Seasonal Admissions", x = "Sex", y = "Number of Admissions")
+```
+#6
+```{r}
+df1 %>% 
+  ggplot() +
+  geom_point(aes(x = age, y = total, color = sex)) +
+  labs(title = "Age vs. Total Charges", x = "Age", y = "Total Charges")
+```
+#7
+```{r}
+ggplot(df1, aes(x = provider)) +
+  geom_bar(fill = "purple", color = "blue") +
+  labs(title = "Provider Frequency", x = "Provider", y = "Frequency")+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+#8
+```{r}
+df1 %>% 
+  ggplot() +
+  geom_bar(mapping=aes(x = admtype, fill = sex),
+  position = 'dodge')+
+  labs(title = "Admission Type per Sex", x = "Admission Type", y = "Number of Admissions")+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+#9
+```{r}
+df1 %>%
+  ggplot(aes(x = age)) +
+  geom_histogram(binwidth = 5) +
+  labs(title = "Age Distribution by Race", x = "Age", y = "Count") +
+  facet_wrap(~race)
+```
+#10
+```{r}
+df1 %>% 
+ggplot(aes(x = season, y = los)) +
+  geom_boxplot(fill = "purple") +
+  labs(title = "Length of Stay by Season", x = "Season", y = "Length of Stay (Days)")
+```
+
+
+Make an animation plot.
+```{r}
+library(gganimate)
+g <- ggplot(df1, 
+       aes(x = race, 
+           y = los, 
+           fill = sex))+
+  geom_col() + 
+  transition_states(season)+
+labs(title = 'Season: {closest_state}')
+animate(g)
+```
+
+
+
+```{r}
+Write a paragraph to summarize the section and give your comments on the results.
