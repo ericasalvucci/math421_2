@@ -1,9 +1,20 @@
+
 ---
-title: "Midterm"
-output: ioslides_presentation
-date: "2024-11-12"
+output:
+  html_document:
+    theme: united
+title: "Math 421 - Midterm"
 ---
 
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+# {.tabset}
+
+## Part 1
 
 ```{r}
 library(gganimate)
@@ -15,15 +26,23 @@ I. Data Wranggling
 Download the data file hdd0318cy.sas7bdat.
 
 Use read_sas in library haven to read the data.
+
 ```{r}
 library(haven)
+library(tidyverse)
+```
+
+
+```{r, eval=FALSE}
 df <-read_sas('hdd0318cy.sas7bdat')
 raw_data=df
 n=nrow(df)
 print(raw_data)
 ```
 
-```{r}
+
+
+```{r, eval=FALSE}
 # find the number of rows of the data
 n = nrow(df)
 
@@ -33,7 +52,7 @@ df1 = df[sample(1:n, 1000), ]
 
 
 Filter the data to have only patients of the year 2018 (yod=18)
-```{r}
+```{r, eval=FALSE}
 df1 = raw_data %>% 
   filter(yod==18)
 ```
@@ -53,12 +72,15 @@ Select to work with only following variables:
                       "campus","er_fee","er_chrg","er_mode","obs_chrg",
                       "obs_hour","psycchrg","nicu_day"
 Notice: You may want to save the current data to your computer for easy access later. To save the data file use write_csv(df, 'midterm.csv'), for example. Also notice that, empty values in the data before writing to csv may turn to NAs later when you re-read the file.
-```{r}
+
+```{r, eval=FALSE}
 write_csv(df1, 'midterm.csv')
 ```
 
 
 ```{r}
+df1 = read_csv("midterm.csv")
+
 df1 <- df1 %>%
   mutate(sex = case_when(
     sex == 1 ~ "Male",
@@ -180,9 +202,12 @@ df1 %>%
 df1 %>% 
   filter(sex == 'Male') %>% 
   summarise(male_age = mean(age))
+
+# No, female patients are not older than male patients on average.
 ```
 
-#No, female patients are not older than male patients on average.
+
+
 Calculate the average age of patients by months. Which month has the oldest patients on average age?
 ```{r}
 df1 %>% 
@@ -247,9 +272,9 @@ df1 %>%
 
 Write a paragraph to summarize the section and give your comments on the results. You could do some other calculations to support your points.
 
-#This data provides valuable insights into hospital attendance, including the average number of people who visit, broken down by gender, age, and race. It gives a clear picture of the demographic patterns of hospital-goers.
+- This data provides valuable insights into hospital attendance, including the average number of people who visit, broken down by gender, age, and race. It gives a clear picture of the demographic patterns of hospital-goers.
 
-#II. Data Visualization
+## II. Data Visualization
 
 Continue with the data from part I.
 
@@ -417,7 +442,8 @@ tree_model$variable.importance
 ```{r}
 barplot(tree_model$variable.importance)
 ```
-Question 3
+
+## Question 3
 
 ```{r}
 tuneGrid = expand.grid(maxdepth = 2:10)
@@ -474,9 +500,6 @@ cm$overall[1]
 ```
 Question 6
 
-```{r}
-median(df$age)
-```
 
 
 ```{r}
@@ -484,37 +507,52 @@ library(haven)
 library(gganimate)
 library(ggplot2)
 library(tidyverse)
-df2 = df
 ```
 
 ```{r}
-df_clean <- na.omit(df2)
-```
-
-```{r}
-df_clean <- df[complete.cases(df$age), ]
-```
-
-```{r}
-median(df$age)
+df_clean <- na.omit(df1)
 ```
 
 
 ```{r}
-df2$target <- ifelse(df2$age<56,'low','high')
-df2 <- df2 %>%
-  mutate(target=as.factor(target))
-df2 = df2 %>% select("age","sex","provider","moa","mod","campus","los","target")
+df1 <- df1 %>%
+  mutate(target = case_when(
+    sex == "Male" ~ "male",   
+    sex == "Female" ~ "female",
+    TRUE ~ "other"             
+  ))
+
+df1 <- df1 %>% 
+  select("sex", "raceethn", "provider", "moa", "mod", "admtype", "campus", "los", "target")
+head(df1)
+
+
 ```
 
 
 #1
 ```{r}
+df1 <- df1 %>%
+  filter(!raceethn =='', !admtype =='')  
+df1 <- df1 %>%
+  mutate(
+    target = as.factor(target),
+    raceethn = as.factor(raceethn),
+    provider = as.factor(provider),
+    moa = as.factor(moa),
+    mod = as.factor(mod),
+    admtype = as.factor(admtype),
+    campus = as.factor(campus),
+    los = as.numeric(los)
+  )
 library(caret)
 
-splitIndex <- createDataPartition(df2$target, p = 0.10, list = FALSE)
-df1_train <- df2[splitIndex, ]
-df1_test <- df2[-splitIndex, ]
+df1 <- drop_na(df1)
+
+set.seed(2020)
+splitIndex <- createDataPartition(df1$target, p = 0.10, list = FALSE)
+df1_train <- df1[splitIndex, ]
+df1_test <- df1[-splitIndex, ]
 ```
 
 #2
@@ -522,12 +560,10 @@ df1_test <- df2[-splitIndex, ]
 library(rpart) 
 tree_model <- rpart(target ~ ., data = df1_train,
                  control = rpart.control(maxdepth = 3))
-```
-
-```{r}
 library(rattle)
 fancyRpartPlot(tree_model)
 ```
+
 
 ```{r}
 tree_model$variable.importance
@@ -535,31 +571,41 @@ tree_model$variable.importance
 ```{r}
 barplot(tree_model$variable.importance)
 ```
-#3
+
+3. 
 ```{r}
-library(caret)
-
-sum(is.na(df1_train))  
-sum(is.na(df1_train$target))  
-
-df1_train_clean <- na.omit(df1_train)
-
-df1_train_clean$target <- as.factor(df1_train_clean$target)
-
 tuneGrid = expand.grid(maxdepth = 2:10)
-trControl = trainControl(method = "cv", number = 5)
+trControl = trainControl(method = "cv",
+                         number = 5)
 
-tree_approach2 <- train(target ~ ., data = df1_train_clean,
-                        method = "rpart2", 
-                        trControl = trControl,
-                        tuneGrid = tuneGrid)
+tree_approach2 <- train(target~., data=df1_train, 
+                                method = "rpart2", 
+                                trControl = trControl,
+                                tuneGrid = tuneGrid)
 
 plot(tree_approach2)
-
 ```
+```{r}
+library(caret)
+pred <- predict(tree_approach2, df1_test)
 
+cm <- confusionMatrix(data = pred, reference = df1_test$target)
+cm$overall[1]
+```
+4. 
+```{r}
+trControl = trainControl(method = "cv",
+                         number = 5)
+tree <- train(target~., data=df1_train, 
+                                method = "rpart2", 
+                                trControl = trControl)
+forest_ranger <- train(target~., data=df1_train, 
+                    method = "ranger", 
+                                trControl = trControl)
 
-
-
+results <- resamples(list('Decision Tree' = tree,
+                          'Random Forest' = forest_ranger))
+bwplot(results)
+```
 
 
