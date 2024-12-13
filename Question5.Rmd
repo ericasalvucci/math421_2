@@ -1,0 +1,81 @@
+
+---
+title: "Titanic - Check Box"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+    logo: logo.png
+    source_code: embed
+    social: menu
+
+runtime: shiny
+---
+
+```{r global, include=FALSE}
+library(flexdashboard)
+library(tidyverse)
+library(plotly)
+library(knitr)
+library(DT)
+df <- read_csv('Consumption.csv')
+df <- drop_na(df, Region)       
+df <- drop_na(df, Year)         
+df <- drop_na(df, Wine)          
+df$Region = factor(df$Region)   
+df$Year = factor(df$Year)       
+df$Wine = factor(df$Wine)     
+unique_regions <- unique(df$Region)
+
+```
+
+{.sidebar}
+=======================================================================
+
+The consumption of alcohol is popular amongst Euorpean regions, however different regions drink different amounts, and not all people in the same region drink the same amount. 
+
+```{r}
+library(shiny)
+checkboxGroupInput(inputId = "region_input", 
+                   label = h3("Region"),
+                   choices = unique(df$Region), 
+                   inline = TRUE,
+                   selected = unique(df$Region)[1])
+
+
+```
+
+Main Tab 1
+=======================================================================
+
+Column {data-width=500}
+-----------------------------------------------------------------------
+
+### Density Plot
+
+```{r}
+renderPlotly({
+  p1 <- df %>% 
+    filter(Region %in% input$region_input) %>% 
+    ggplot(aes(x = Consumption, color = Region)) +  
+    geom_density()  
+  ggplotly(p1)  
+})
+
+```
+
+Column {data-width=500}
+-----------------------------------------------------------------------
+
+### Bar Plot
+
+```{r}
+renderPlotly({
+  p2 <- df %>% 
+    filter(Region %in% input$region_input) %>%  
+    ggplot(aes(x = Consumption, fill = Region)) +  
+    geom_bar() 
+  ggplotly(p2) 
+})
+
+```

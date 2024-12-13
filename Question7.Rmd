@@ -1,0 +1,75 @@
+
+---
+title: "Consumption - Radio Button"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+    source_code: embed
+    social: menu
+
+runtime: shiny
+---
+
+```{r global, include=FALSE}
+# load data in 'global' chunk so it can be shared by all users of the dashboard
+library(flexdashboard)
+library(tidyverse)
+library(plotly)
+library(knitr)
+library(DT)
+df <- read_csv('Consumption.csv')
+df <- drop_na(df, Consumption)
+df$Region = factor(df$Region)
+unique_regions <- unique(df$Region)
+df$Beer_2 = ifelse(df$Beer > median(df$Beer, na.rm = TRUE), "high", "low")
+```
+
+{.sidebar}
+=======================================================================
+
+Alcohol consumption has been very popular in Europe. While there was some element different elements in how often and much they drink, it can be seen that certain regions drink different amounts that others.  Select the input for the plots. 
+
+```{r}
+radioButtons(inputId = "region_input", 
+             label = h2("Select Region"),
+             choices = unique(df$Region),
+             inline = TRUE,
+             selected = unique(df$Region)[1])
+```
+
+Main Tab 1
+=======================================================================
+
+Column {data-width=500}
+-----------------------------------------------------------------------
+
+### Density Plot
+
+```{r}
+renderPlotly({
+  p1 <- df %>% 
+    filter(Year == input$year_input) %>%  
+    ggplot(aes(x = Beer, color = Year)) +  
+    geom_density()  
+  ggplotly(p1)  
+})
+
+
+```
+
+Column {data-width=500}
+-----------------------------------------------------------------------
+
+### Bar Plot
+
+```{r}
+renderPlotly({
+  p2 <- df %>% 
+    filter(Year == input$year_input) %>% 
+    ggplot(aes(x = Sparkling_wine, y = Wine, color = Beer_2)) +  
+    geom_point()  
+  ggplotly(p2) 
+})
+
+```

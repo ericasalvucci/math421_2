@@ -1,0 +1,12 @@
+name: Question6
+title: Question6
+username: esalvucci
+account: esalvucci
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 13588594
+bundleId: 9511758
+url: https://esalvucci.shinyapps.io/Question6/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE

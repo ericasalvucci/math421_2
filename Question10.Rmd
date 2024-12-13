@@ -1,0 +1,270 @@
+
+---
+title: "Consumption"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+    source_code: embed
+    social: menu
+
+runtime: shiny
+---
+
+```{r global, include=FALSE}
+# load data in 'global' chunk so it can be shared by all users of the dashboard
+library(flexdashboard)
+library(tidyverse)
+library(plotly)
+library(knitr)
+library(DT)
+library(lubridate)
+library(shiny)
+df <- read_csv('Consumption.csv')
+
+library(dplyr)
+library(tidyr)
+
+
+df <- drop_na(df)
+
+
+df$Region <- as.factor(df$Region)
+unique_region <- unique(df$Region)
+
+
+df$Year <- as.factor(df$Year)
+unique_year <- unique(df$Year)
+
+
+df$Wine <- as.numeric(df$Wine)
+df$Beer <- as.numeric(df$Beer)
+df$Vodka <- as.numeric(df$Vodka)
+df$Sparkling_wine <- as.numeric(df$Sparkling_wine)
+df$Brandy <- as.numeric(df$Brandy)
+df$Cider <- as.numeric(df$Cider)
+df$Liqueurs <- as.numeric(df$Liqueurs)
+df$Consumption <- as.numeric(df$Consumption)
+df <- df %>%
+  mutate(Total_Consumption = Wine + Beer + Vodka + Sparkling_wine + Brandy + Cider + Liqueurs)
+
+unique_region <- unique(df$Region)
+unique_year <- unique(df$Year)
+
+```
+
+{.sidebar}
+=======================================================================
+
+
+The consumption of alcohol is popular amongst Euorpean regions, however different regions drink different amounts, and not all people in the same region drink the same amount. 
+
+
+```{r}
+# RadioButton for selecting the Region
+radioButtons(inputId = "region_input", 
+             label = "Select Region", 
+             choices = unique(df$Region), 
+             selected = unique(df$Region)[1])
+
+# CheckboxGroup for selecting multiple years
+checkboxGroupInput(inputId = "year_input", 
+                   label = h3("Select Year(s)"), 
+                   choices = unique(df$Year), 
+                   inline = TRUE, 
+                   selected = unique(df$Year)[1])
+
+# CheckboxGroup for selecting alcohol types (for example, Wine, Beer, etc.)
+checkboxGroupInput(inputId = "alcohol_input", 
+                   label = h3("Select Alcohol Types"),
+                   choices = c("Wine", "Beer", "Vodka", "Sparkling_wine", "Brandy", "Cider", "Liqueurs"), 
+                   inline = TRUE, 
+                   selected = c("Wine", "Beer"))
+
+# CheckboxGroup for selecting range of Consumption
+checkboxGroupInput(inputId = "consumption_input", 
+                   label = h3("Select Consumption Range"), 
+                   choices = c("Low", "Medium", "High"), 
+                   inline = TRUE, 
+                   selected = "Medium")
+
+# CheckboxGroup for selecting Regions with consumption data (if needed, based on choices)
+checkboxGroupInput(inputId = "region_cons_input", 
+                   label = h3("Select Regions with Consumption Data"),
+                   choices = unique(df$Region), 
+                   inline = TRUE, 
+                   selected = unique(df$Region)[1])
+
+
+```
+
+Main Tab 1
+=======================================================================
+
+Column {data-width=500}
+-----------------------------------------------------------------------
+### Column Tab 1
+```{r}
+df
+```
+
+### Column Tab 2
+```{r}
+names(df)
+```
+
+### Column Tab 3
+```{r}
+summary(df)
+```
+
+
+
+
+Main Tab 2
+=======================================================================
+
+Column {data-width=700}
+-----------------------------------------------------------------------
+
+
+### Density Plot
+
+```{r}
+renderPlotly({
+  p1 <- df %>% 
+    filter(
+      Year == input$year_input,  
+      Region %in% input$region_input 
+    ) %>%
+    ggplot(aes(x = Consumption, color = Region)) +  
+    geom_density() +  
+    labs(x = 'Consumption', y = 'Density', title = 'Density of Alcohol Consumption by Region') +  # Update labels
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))  
+
+  ggplotly(p1)
+})
+
+
+```
+
+Column {data-width=300}
+-----------------------------------------------------------------------
+```{r}
+img(src = "download.png", height = "200px", width = "200px")
+```
+
+
+
+Main Tab 3
+=======================================================================
+
+
+
+```{r}
+renderPlotly({
+  p2 <- df %>%
+    filter(
+      Year == input$year_input,  
+      Region %in% input$region_input  
+    ) %>%
+    ggplot(aes(x = Region, fill = Region)) +  
+    geom_bar() +  
+    labs(x = "Region", y = "Count of Consumption", title = "Count of Consumption by Region") +  
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))  #
+
+  ggplotly(p2)  
+})
+
+
+```
+
+
+Main Tab 4
+=======================================================================
+
+Column {data-width=500}
+-----------------------------------------------------------------------
+
+### Bar Plot
+
+```{r}
+renderPlotly({
+  
+  median_wine <- median(df$Wine, na.rm = TRUE)
+  
+  p3 <- df %>%
+    filter(
+      Year == input$year_input,  
+      Region %in% input$region_input  
+    ) %>%
+    
+    filter(Wine > median_wine) %>%
+    ggplot(aes(x = Region, fill = Region)) +  
+    geom_bar() +  
+    labs(x = "Region", y = "Count", title = "Count of Regions with Higher-than-Median Wine Consumption") +  
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))  
+  
+  ggplotly(p3)  
+})
+  
+
+```
+
+Column {data-width=500}
+-----------------------------------------------------------------------
+
+### Bar Plot
+```{r}
+renderPlotly({
+ 
+  median_beer <- median(df$Beer, na.rm = TRUE)
+  
+  p4 <- df %>%
+    filter(
+      Year == input$year_input,  
+      Region %in% input$region_input  
+    ) %>%
+    
+    filter(Beer > median_beer) %>%
+    ggplot(aes(x = Region, fill = Region)) +  
+    geom_bar() +  
+    labs(x = "Region", y = "Count", title = "Count of Regions with Higher-than-Median Beer Consumption") +  
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))  
+  
+  
+  ggplotly(p4)  
+})
+
+
+```
+
+Main Tab 5
+=======================================================================
+
+Column {data-width=500}
+-----------------------------------------------------------------------
+```{r}
+renderPlotly({
+
+  avg_consumption <- mean(df$Consumption, na.rm = TRUE)
+  
+  p5 <- df %>%
+    filter(
+      Year == input$year_input,  
+      Region %in% input$region_input  
+    ) %>%
+    
+    filter(Consumption > avg_consumption) %>%
+    ggplot(aes(x = Region, fill = Region)) +  
+    geom_bar() +  
+    labs(x = "Region", y = "Count", title = "Count of Regions with Above-Average Consumption") +  
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))  
+  
+ 
+  ggplotly(p5)  
+})
+
+
+```
+

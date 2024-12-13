@@ -1,0 +1,12 @@
+name: Question8
+title: Question8
+username: esalvucci2
+account: esalvucci2
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 13588865
+bundleId: 9512608
+url: https://esalvucci2.shinyapps.io/Question8/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE

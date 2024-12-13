@@ -1,0 +1,173 @@
+
+---
+title: "Consumption - Combination of Inputs"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+    source_code: embed
+    social: menu
+
+runtime: shiny
+---
+
+```{r global, include=FALSE}
+# load data in 'global' chunk so it can be shared by all users of the dashboard
+library(flexdashboard)
+library(tidyverse)
+library(plotly)
+library(knitr)
+library(DT)
+library(lubridate)
+df <- read_csv('Consumption.csv')
+df <- drop_na(df, Region)
+df <- drop_na(df, Year)
+df <- drop_na(df, Wine)
+df$Year <- as.integer(df$Year)
+df$Region <- factor(df$Region)
+df$Wine <- as.numeric(df$Wine)
+
+
+unique_region <- unique(df$Region)
+
+
+```
+
+{.sidebar}
+=======================================================================
+
+The sinking of the Titanic is one of the most infamous shipwrecks in history. While there was some element of luck involved in surviving, it seems some groups of people were more likely to survive than others.  Select the input for the plots. 
+
+
+```{r}
+
+sliderInput(inputId = "wine_input", 
+            label = h3("Wine Consumption Range"),
+            min = min(df$Wine, na.rm=TRUE),  
+            max = max(df$Wine, na.rm=TRUE),  
+            value = c(min(df$Wine, na.rm=TRUE), max(df$Wine, na.rm=TRUE)))  
+
+selectInput(inputId = "region_input", 
+            label = h3("Select Region"),
+            choices = unique(df$Region), 
+            selected = unique(df$Region)[1])  
+
+selectInput(inputId = "year_input", 
+            label = h3("Select Year"),
+            choices = unique(df$Year),  
+            selected = unique(df$Year)[1],  
+            multiple = TRUE)
+
+```
+
+Main Tab 1
+=======================================================================
+
+-----------------------------------------------------------------------
+
+### Density Plot
+
+```{r}
+renderPlotly({
+  p1 <- df %>%
+    filter(Wine > input$wine_input[1], Wine < input$wine_input[2]) %>%  
+    filter(Region == input$region_input) %>% 
+    filter(Year %in% input$year_input) %>%  
+    ggplot(aes(x = Wine, color = Region)) +  
+    geom_density()  
+  ggplotly(p1)  
+})
+
+```
+
+-----------------------------------------------------------------------
+
+### Bar Plot
+
+```{r}
+renderPlotly({
+  p2 <- df %>% 
+    filter(Wine > input$wine_input[1], Wine < input$wine_input[2]) %>%  
+    filter(Region == input$region_input) %>% 
+    filter(Year %in% input$year_input) %>% 
+    ggplot(aes(x=Region, fill=Wine)) +  
+    geom_bar(position="dodge")  
+  ggplotly(p2)
+})
+
+```
+
+
+Main Tab 2
+=======================================================================
+
+Column {data-width=500}
+-----------------------------------------------------------------------
+
+### Density Plot
+
+```{r}
+renderPlotly({
+  p1 <- df %>%
+    filter(Wine > input$wine_input[1], Wine < input$wine_input[2]) %>%  
+    filter(Region == input$region_input) %>%  
+    filter(Year %in% input$year_input) %>%  
+    ggplot(aes(x = Wine, color = Region)) +  
+    geom_density()  
+  ggplotly(p1)  
+})
+
+```
+
+Column {data-width=500}
+-----------------------------------------------------------------------
+
+### What is Density Plot?
+
+- A density plot is an alternative to Histogram used for visualizing the distribution of a continuous variable. The peaks of a Density Plot help to identify where values are concentrated over the interval of the continuous variable. Compared to Histograms, Density Plots are better at finding the distribution shape because they are re not affected by the number of bins used (each bar used in a typical histogram).
+
+- For example, a Histogram with only 4 bins wouldn’t produce a distinguishable enough shape of distribution as a 30-bin Histogram would. However, with Density Plots, this isn’t an issue.
+
+
+![](https://th.bing.com/th/id/OIP.DVy9Rk1U89EZ5YCZelmiFgHaE8?w=269&h=180&c=7&r=0&o=5&dpr=1.5&pid=1.7)
+
+
+
+
+
+Main Tab 3
+=======================================================================
+
+Column {data-width=500}
+-----------------------------------------------------------------------
+
+### Bar Plot
+
+```{r}
+renderPlotly({
+  p2 <- df %>%
+    filter(Wine > input$wine_input[1], Wine < input$wine_input[2]) %>%  
+    filter(Region == input$region_input) %>%  
+    filter(Year %in% input$year_input) %>%  
+    ggplot(aes(x = Wine, fill = Region)) +  
+    geom_bar(position = "dodge")  
+  ggplotly(p2)  
+})
+
+
+```
+
+Column {data-width=500}
+-----------------------------------------------------------------------
+
+### What is Bar Chart?
+
+- There are two types of bar charts: geom_bar() and geom_col(). geom_bar() makes the height of the bar proportional to the number of cases in each group (or if the weight aesthetic is supplied, the sum of the weights). 
+
+- If you want the heights of the bars to represent values in the data, use geom_col() instead. geom_bar() uses stat_count() by default: it counts the number of cases at each x position. geom_col() uses stat_identity(): it leaves the data as is.
+
+```{r}
+image_url <- "https://th.bing.com/th/id/OIP.6sHdYhLa7UIv5GrzvYkllQHaEu?w=304&h=194&c=7&r=0&o=5&dpr=1.5&pid=1.7"
+```
+<center><img src="`r image_url`"></center>
+

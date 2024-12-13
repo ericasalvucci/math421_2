@@ -1,0 +1,83 @@
+
+---
+title: "Consumption - Check Box"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+    source_code: embed
+    social: menu
+
+runtime: shiny
+---
+
+```{r global, include=FALSE}
+# load data in 'global' chunk so it can be shared by all users of the dashboard
+library(flexdashboard)
+library(tidyverse)
+library(plotly)
+library(knitr)
+library(DT)
+library(lubridate)
+df <- read_csv('Consumption.csv')
+df <- drop_na(df, Region)  
+df <- drop_na(df, Year)
+df$Region <- factor(df$Region)
+df$Vodka <- factor(df$Vodka)
+unique_region <- unique(df$Region)
+df$Consumption_2 = ifelse(df$Consumption > median(df$Consumption, na.rm = TRUE), "high", "low")
+df$Beer_2 = ifelse(df$Beer > median(df$Beer, na.rm = TRUE), "high", "low")
+```
+
+{.sidebar}
+=======================================================================
+
+- Alcohol consumption has been very popular in Europe. While there was some element different elements in how often and much they drink, it can be seen that certain regions drink different amounts that others.  Select the input for the plots. 
+
+- In this example, the data for Date is not fictional and not real data. 
+
+```{r}
+dateRangeInput(inputId = "date_input", 
+               label = h2("Date range"), 
+               start = min(df$Year), 
+               end = max(df$Year),
+               min = min(df$Year), 
+               max = max(df$Year))
+
+```
+
+Main Tab 1
+=======================================================================
+
+Column {data-width=500}
+-----------------------------------------------------------------------
+
+### Density Plot
+
+```{r}
+renderPlotly({
+  p1 <- df %>% 
+    filter(Year > input$date_input[1], Year < input$date_input[2]) %>%
+    ggplot(aes(x=Consumption_2, color=Region)) +
+    geom_density()
+  ggplotly(p1)
+})
+
+```
+
+Column {data-width=500}
+-----------------------------------------------------------------------
+
+### Bar Plot
+
+```{r}
+renderPlotly({
+  p2 <- df %>% 
+    filter(Year > input$date_input[1], Year < input$date_input[2]) %>%  
+    ggplot(aes(x=Year, fill=Region)) + 
+    geom_bar(position="dodge")  
+  ggplotly(p2)
+})
+
+```
+
