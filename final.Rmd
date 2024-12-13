@@ -78,8 +78,7 @@ Write a shiny flex dashboard that uses `selectInput` and works with a dataset di
 Note: In the above dashboard, click to Source Code to show the codes.
 
 Include the link of your dashboard here.
-https://www.shinyapps.io/admin/#/dashboard 
-
+https://esalvucci.shinyapps.io/Question4/
 ### Question 5 - checkboxGroupInput
 
 Write a shiny flex dashboard that uses `checkboxGroupInput` and works with a dataset different from the titanic dataset.
@@ -87,7 +86,7 @@ Write a shiny flex dashboard that uses `checkboxGroupInput` and works with a dat
 [Similar dashboard](https://sn904109.shinyapps.io/2_flex_checkbox/), [Rmd](2_flex_checkbox.Rmd)
 
 Include the link of your dashboard here.
-https://www.shinyapps.io/admin/#/dashboard 
+https://esalvucci.shinyapps.io/Question5/
 
 ### Question 6 - sliderInput
 
@@ -96,7 +95,7 @@ Write a shiny flex dashboard that uses `sliderInput` and works with a dataset di
 [Similar dashboard](https://sn904109.shinyapps.io/3_flex_slider/), [Rmd](3_flex_slider.Rmd)
 
 Include the link of your dashboard here.
-https://www.shinyapps.io/admin/#/dashboard 
+https://esalvucci.shinyapps.io/Question6/
 
 ### Question 7 - radioButtons
 
@@ -105,7 +104,7 @@ Write a shiny flex dashboard that uses `radioButtons` and works with a dataset d
 [Similar dashboard](https://sn904109.shinyapps.io/4_flex_radio/), [Rmd](4_flex_radio.Rmd)
 
 Include the link of your dashboard here.
-https://www.shinyapps.io/admin/#/dashboard 
+https://esalvucci.shinyapps.io/Question7/
 
 ------------------------------------------------------------------------
 
@@ -120,7 +119,7 @@ Write a shiny flex dashboard that uses `dateRangeInput` and works with a dataset
 [Similar dashboard](https://sn904109.shinyapps.io/5_flex_date_range/), [Rmd](5_flex_date_range.Rmd)
 
 Include the link of your dashboard here.
-https://www.shinyapps.io/admin/#/dashboard 
+https://esalvucci2.shinyapps.io/Question8/
 
 ### Question 9 - Combination of Inputs
 
@@ -129,7 +128,7 @@ We can combine different input methods into one dashboard. Write a shiny flex da
 [Similar dashboard](https://snguyen4.shinyapps.io/6_flex_combine/), [Rmd](6_flex_combine.Rmd)
 
 Include the link of your dashboard here.
-https://www.shinyapps.io/admin/#/dashboard 
+https://esalvucci2.shinyapps.io/Question9/
 
 ------------------------------------------------------------------------
 
@@ -162,7 +161,7 @@ Write a dashboard that
 -   (Extra Credits) Uses Reddit data or text data and text data visualization
 
 Include the link of your dashboard here.
-https://www.shinyapps.io/admin/#/dashboard 
+https://esalvucci2.shinyapps.io/Question10/#section-main-tab-1
 
 ------------------------------------------------------------------------
 
